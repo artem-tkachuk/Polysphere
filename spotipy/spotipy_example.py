@@ -60,33 +60,19 @@ def home():
     album_covers = []
     track_info = []
     
-    html = ''
-
     for idx, item in enumerate(results['items']):
         track = item['track']
-        if idx == 0:
-            print(track['uri'])
-        album_covers.append(track['album']['images'][0]['url'])
+        
         track_info.append({
-            "artist": f"{track['artists'][0]['name']}"{track['name']}"
+            "artist": track['artists'][0]['name'],
+            "name": track['name'],
+            "uri": track['uri'],
+            "album_cover": track['album']['images'][0]['url']
         })
 
-    # for url, info in zip(album_covers, track_info):
-    #     html += f'''
-    #     <div class="tooltip">
-    #         <img src="{url}" style="width:200px;height:200px;margin:0px;">
-    #         <span class="tooltiptext">{info}</span>
-    #     </div>
-    #     '''
-
-    # generate_album_covers_grid(album_covers)
-    # return render_template_string(html)
-    data = {
-        "album_covers": album_covers, 
-        "track_info": track_info
-    }
-    # return jsonify({'data': data})
-    return data
+    return jsonify({
+        'track_info': track_info
+        })
 
 if __name__ == '__main__':
     app.run(port=5001)
