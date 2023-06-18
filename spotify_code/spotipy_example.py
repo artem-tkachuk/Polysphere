@@ -2,7 +2,11 @@ from dotenv import load_dotenv
 
 load_dotenv()  
 
-from flask import Flask, render_template_string, jsonify
+from mongo import get_mongo_db
+
+get_mongo_db()
+
+from flask import Flask, render_template_string, jsonify, request
 import spotipy
 from PIL import Image
 import requests
@@ -11,6 +15,7 @@ import numpy as np
 from spotipy.oauth2 import SpotifyOAuth
 import os 
 from flask_cors import CORS, cross_origin
+from embed import embed
 
 app = Flask(__name__)
 CORS(app)
@@ -52,10 +57,29 @@ def generate_album_covers_grid(album_covers):
     # Save the image
     img.save('album_covers.png')
 
+@app.route('/emotions', methods=['POST'])
+def write_emotions_to_db():
+    data = request.get_json()  # This is your payload from the POST request
+    print(data)  # This will print the entire JSON payload
+
+    # If you want to access individual values, you can do so like this:
+    userID = data.get('userID')
+    userName = data.get('userName')
+    songName = data.get('songName')
+    top3Emotions = data.get('top3Emotions')
+
+    print(userID, userName, songName, top3Emotions)
+
+    embed(top3Emotions)
+
+    # Add your code to write these values to the database
+
+    return {"status": "success"}  # Return a response to indicate the operation was successful
+
 
 @app.route('/spotify', methods=['GET'])
 def home():
-    results = sp.current_user_recently_played(limit=30)
+    results = sp.current_user_recently_played(limit=50)
 
     album_covers = []
     track_info = []
@@ -71,7 +95,9 @@ def home():
         })
 
     return jsonify({
-        'track_info': track_info
+            'track_info': track_info,
+            'username': sp.me()['display_name'],
+            'userID': sp.me()['id']
         })
 
 if __name__ == '__main__':
