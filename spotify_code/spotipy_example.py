@@ -3,8 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()  
 
 from mongo import get_mongo_db
-
-get_mongo_db()
+from pymongo import ReturnDocument
 
 from flask import Flask, render_template_string, jsonify, request
 import spotipy
@@ -70,7 +69,46 @@ def write_emotions_to_db():
 
     print(userID, userName, songName, top3Emotions)
 
-    embed(top3Emotions)
+    # Compute embeddings
+    embedding = embed(top3Emotions)
+
+    database = get_mongo_db()
+    # Get collection
+    collection_name = os.environ.get('MONGO_DB_COLLECTION_NAME')
+    songs = database[collection_name]
+
+    print(songs)
+
+    user_doc = {
+        'user_name': userName, 
+        'userID': userID, 
+        'embedding': embedding
+    }
+
+    print(user_doc)
+
+    song_doc = songs.find_one_and_update(
+        {'song_name': songName},
+        {'$addToSet': {'users': user_doc}},
+        upsert=True,
+        return_document=ReturnDocument.AFTER
+    )
+
+    print('updated song')
+
+    # Now we need to update the user's embedding if they already exist in the 'users' array
+    user_index = next((index for (index, user) in enumerate(song_doc['users']) if user["userID"] == userID), None)
+
+    if user_index is not None:
+        songs.update_one(
+            {'song_name': songName, 'users.userID': userID},
+            {'$set': {'users.$.embedding': embedding}}
+        )
+
+        print('updated user')
+
+    # TODO store embedding in Pinecone
+    # TODO store data in MongoDB
 
     # Add your code to write these values to the database
 
