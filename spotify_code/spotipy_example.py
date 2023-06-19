@@ -15,6 +15,7 @@ from spotipy.oauth2 import SpotifyOAuth
 import os 
 from flask_cors import CORS, cross_origin
 from embed import embed
+import pinecone
 
 app = Flask(__name__)
 CORS(app)
@@ -56,6 +57,19 @@ def generate_album_covers_grid(album_covers):
     # Save the image
     img.save('album_covers.png')
 
+@app.route('/get_recommendations_page', methods=['GET'])
+def get_recommendations_page(userID, userName, artistName, songName):
+    # build a chat interface
+    # input song / hardcode
+    data = request.get_json()
+    userName = data.get('userName')
+    artistName = data.get('artistName')
+    songName = data.get('songName')
+    # get my embedding for this song
+    # filter all pinecone vectorIDs by corresponding songname
+    # similarity search
+    # return as output whatever pinecone gives
+
 @app.route('/emotions', methods=['POST'])
 def write_emotions_to_db():
     data = request.get_json()  # This is your payload from the POST request
@@ -64,13 +78,16 @@ def write_emotions_to_db():
     # If you want to access individual values, you can do so like this:
     userID = data.get('userID')
     userName = data.get('userName')
+    artistName = data.get('artistName')
     songName = data.get('songName')
     top3Emotions = data.get('top3Emotions')
 
-    print(userID, userName, songName, top3Emotions)
+    print(userID, userName, artistName, songName, top3Emotions)
 
     # Compute embeddings
     embedding = embed(top3Emotions)
+
+    vectorID = f"{userName}-{artistName.lower().replace(' ', '-')}-{songName.lower().replace(' ', '-')}"
 
     database = get_mongo_db()
     # Get collection
@@ -80,7 +97,9 @@ def write_emotions_to_db():
     print(songs)
 
     user_doc = {
-        'user_name': userName, 
+        'vector_id': vectorID,
+        'user_name': userName,
+        'artist_name': artistName,
         'userID': userID, 
         'embedding': embedding
     }
@@ -88,7 +107,7 @@ def write_emotions_to_db():
     print(user_doc)
 
     song_doc = songs.find_one_and_update(
-        {'song_name': songName},
+        {'song_name': songName, 'artist_name': artistName},
         {'$addToSet': {'users': user_doc}},
         upsert=True,
         return_document=ReturnDocument.AFTER
@@ -101,16 +120,52 @@ def write_emotions_to_db():
 
     if user_index is not None:
         songs.update_one(
-            {'song_name': songName, 'users.userID': userID},
-            {'$set': {'users.$.embedding': embedding}}
+            {'song_name': songName, 'artist_name': artistName, 'users.userID': userID},
+            {'$set': {'users.$.embedding': embedding, 'users.$.vector_id': vectorID}}
         )
 
         print('updated user')
 
-    # TODO store embedding in Pinecone
-    # TODO store data in MongoDB
+
+    ## store embedding in Pinecone
+    pinecone.init(
+        os.environ.get('PINECONE_API_KEY'),
+        environment='us-west1-gcp-free'
+    )
+
+
+    # get index
+    index_name = "polysphere-embeddings"
+
+    # indexes_list = pinecone.list_indexes()
+    # if index_name not in indexes_list:
+    #     pinecone.create_index("polysphere-embeddings", dimension=1536, metric="euclidean")
+
+    index = pinecone.Index(index_name)
+
+    metadata = {
+        'user_name': userName,
+        'artist_name': artistName,
+        'song_name': songName
+    }
+
+    # inser embedding for the user into the index for the specific song
+    index.upsert([
+        (vectorID, embedding, metadata)
+    ])    
+    
+
+    # TODO query for similarity search
+    # index.query(
+    #  vector=[0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3],
+    #  top_k=3,
+    #  include_values=True
+    # )
+
+    print('inserted into pinecone')
 
     # Add your code to write these values to the database
+
 
     return {"status": "success"}  # Return a response to indicate the operation was successful
 
