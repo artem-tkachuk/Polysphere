@@ -1,3 +1,11 @@
+# Polysphere
+
+### MindsDB Prize 1st place, Solana Prize 2nd place @ CalHacks x SkyDeck AI & LLM Hackathon @ UC Berkeley
+
+#### Polysphere is a suite of powerful LLM tools working together to help us find people who feel the same about the music we love, taking recommendations to the next level. Movies and books are next!
+
+![image](https://github.com/artem-tkachuk/Polysphere/assets/45192056/9458e1c5-fe8f-4dbd-ac88-2b87f1558990)
+
 ## Inspiration
 We are incredibly passionate about the arts, especially music, film, books, etc. These areas are heavily influenced by machine recommendations. A lot of such algorithms have been relying on minimal human input to drive conclusions and improve over time. 
 
@@ -10,6 +18,12 @@ For us CalHacks LLM Hackathon is an excellent opportunity to make a bold move an
 - Listen to Spotify tracks right on the Polysphere website, but now with the power of real-time facial expression analysis of Hume.ai - add a new emotional dimension to how you discover and experience music
 - Enjoy better recommendations and find people with whom you share a taste in music with much more datapoints than a few entries like before
 - Visualize album covers in a beautiful grid that updates in **real time**, generate an NFT out of it, and mint it on the Solana blockchain
+
+![image](https://github.com/artem-tkachuk/Polysphere/assets/45192056/7e244186-ad44-438a-a364-9472fc0545c1)
+
+![image](https://github.com/artem-tkachuk/Polysphere/assets/45192056/3340b409-614c-43e9-b41b-b5cb1cf7b329)
+
+![image](https://github.com/artem-tkachuk/Polysphere/assets/45192056/a4785af2-7ba0-4d33-a6d4-351277d81168)
 
 ## How we built it
 
@@ -33,6 +47,8 @@ For us CalHacks LLM Hackathon is an excellent opportunity to make a bold move an
 
 - Langchain and Hume helped us build embeddings for the vectors that correspond to top emotions across the song-play period
 
+![image](https://github.com/artem-tkachuk/Polysphere/assets/45192056/20e5f790-d98e-49fe-9046-19d682c4e080)
+
 ## Challenges we ran into
 - Pinecone free trial restricts # of indices
 - To allow access to the MindsDB calendar, a regular user has to go through essential hell (for them), installing Google Cloud Platform, etc.
@@ -48,10 +64,11 @@ For us CalHacks LLM Hackathon is an excellent opportunity to make a bold move an
 - We have a lot of things working, many in real-time, and some components are almost functional. We tried our VERY best but sometimes things just do not work in the constrained hackathon time.
 - We became good friends in the process and plan to continue developing this idea along with other Berkeley students -- all three of us are alumni!
 
-## What we learned
-
 ## What's next for Polysphere
 - Apple Music as a second primary data source for music to bridge the gap between platforms and allow people to connect regardless of which service they use
 - Netflix, HBO, etc.
 - Films, books, and other similar content -> coming into one time-series database, providing a powerful data source for better intelligence and better multi-model recommendations
 - Use embeddings and emotion scores to generate custom artwork based on this textual data using OpenAI DALL-E and MindsDB, minting it into Solana NFTs so people can be proud of their cultural horizon
+ 
+![image](https://github.com/artem-tkachuk/Polysphere/assets/45192056/bc50605b-3bed-4a51-8b1f-2e3f10a6e716)
+
